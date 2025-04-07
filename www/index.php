@@ -60,4 +60,9 @@ document.getElementById('departement-select').addEventListener('change', functio
     this.form.action = '';
     this.form.submit();
 });
+
+document.getElementById('ville-select').addEventListener('change', function() {
+    this.form.action = '';
+    this.form.submit();
+});
 </script>

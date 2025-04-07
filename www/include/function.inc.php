@@ -164,7 +164,7 @@ function getWeatherIcon(int $code): string {
         80 => "🌦️",
         95 => "⛈️",
     ];
-    return $icons[$code] ?? "❓";
+    return $icons[$code] ?? " ";
 }
 
 /**
@@ -255,7 +255,8 @@ function afficherMeteo(string $ville, float $latitude, float $longitude, string 
     ]);
 }
 
-function getCitiesFromCSV($filename) {
+
+function getCitiesFromCSV($filename): ?array {
     if (($handle = fopen($filename, "r")) !== FALSE) {
         $headers = fgetcsv($handle, 1000, ",");
         $cities = [];
@@ -275,13 +276,13 @@ function getCitiesFromCSV($filename) {
     return [];
 }
 
-function filterCitiesByDepartment($cities, $departmentCode) {
+function filterCitiesByDepartment($cities, $departmentCode): ?array {
     return array_filter($cities, function($city) use ($departmentCode) {
         return $city['department_code'] == $departmentCode;
     });
 }
 
-function displayCityDropdown($cities, $selected = '') {
+function displayCityDropdown($cities, $selected = ''): void {
     echo '<select name="ville" id="ville-select" required>';
     echo '<option value="">Sélectionnez une ville</option>';
     foreach ($cities as $city) {
@@ -296,7 +297,7 @@ function displayCityDropdown($cities, $selected = '') {
     echo '</select>';
 }
 
-function getDepartmentsFromCSV($filename) {
+function getDepartmentsFromCSV($filename): ?array {
     if (($handle = fopen($filename, "r")) !== FALSE) {
         $headers = fgetcsv($handle, 1000, ",");
         $departments = [];
@@ -314,13 +315,13 @@ function getDepartmentsFromCSV($filename) {
     return [];
 }
 
-function filterDepartmentsByRegion($departments, $regionCode) {
+function filterDepartmentsByRegion($departments, $regionCode): ?array {
     return array_filter($departments, function($department) use ($regionCode) {
         return $department['region_code'] == $regionCode;
     });
 }
 
-function displayDepartmentDropdown($departments, $selected = '') {
+function displayDepartmentDropdown($departments, $selected = ''): void {
     echo '<select name="departement" id="departement-select">';
     echo '<option value="">Sélectionnez un département</option>';
     foreach ($departments as $department) {
@@ -332,7 +333,7 @@ function displayDepartmentDropdown($departments, $selected = '') {
     echo '</select>';
 }
 
-function getRegionsFromCSV($filename) {
+function getRegionsFromCSV($filename): ?array {
     if (($handle = fopen($filename, "r")) !== FALSE) {
         $headers = fgetcsv($handle, 1000, ",");
         $regions = [];
@@ -350,7 +351,7 @@ function getRegionsFromCSV($filename) {
     return [];
 }
 
-function displayRegionDropdown($regions, $selected = '') {
+function displayRegionDropdown($regions, $selected = ''): void {
     echo '<select name="region" id="region-select">';
     echo '<option value="">Sélectionnez une région</option>';
     foreach ($regions as $region) {
@@ -371,18 +372,24 @@ function getCityById($cities, $id) {
     return null;
 }
 
-function logCityUsage($city) {
+function getIdByCityName($cities, string $cityName) {
+    foreach ($cities as $city) {
+        if ($city['name'] == $cityName) {
+            return $city;
+        }
+    }
+    return null;
+}
+
+function logCityUsage($city): void {
     $logFile = 'csv/usage.csv';
     
-    // Vérifie si le fichier existe, sinon crée l'en-tête
     if (!file_exists($logFile)) {
         $headers = ['date', 'ip', 'id', 'nom', 'departement', 'latitude', 'longitude'];
         file_put_contents($logFile, implode(',', $headers) . "\n");
     }
     
-    // Prépare les données
-    $data = [
-        date('Y-m-d H:i:s'),
+    $data = [ date('Y-m-d H:i:s'),
         $_SERVER['REMOTE_ADDR'],
         $city['id'],
         $city['name'],
@@ -391,11 +398,10 @@ function logCityUsage($city) {
         $city['gps_lng']
     ];
     
-    // Ajoute la ligne au fichier
     file_put_contents($logFile, implode(',', $data) . "\n", FILE_APPEND);
 }
 
-function getCityFullData($cities, $id) {
+function getCityFullData($cities, $id): ?array {
     foreach ($cities as $city) {
         if ($city['id'] == $id) {
             return $city;
