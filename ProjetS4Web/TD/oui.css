@@ -1,0 +1,125 @@
+
+h1{
+	text-align:center;
+	margin:20px;
+	font-family:calibri;
+	color:purple;
+	background-color:#FF3399;
+	width:50%;
+	font-size: 2em;
+}
+
+h2{
+	text-align:center;
+	margin:20px;
+	font-family:calibri;
+	color:purple;
+	background-color:#FF3399;
+	width:50%;
+	font-size: 2em;
+}
+
+p{
+	text-align:center;
+	color:#FF3399;
+	font-size: 1em;
+}
+
+header{
+		background-color: black;
+		width:100%;
+}
+
+body{
+	background-color:purple;
+	margin: 20px;
+}
+
+footer{
+	background-color: black;
+	 padding: 1rem;
+}
+
+.navbar ul{
+	list-style-type : none;
+	padding-right : 100px; 
+	padding-left : 100px;
+	padding-top : 15px;
+	padding-bottom : 15px;
+	overflow : hidden;
+
+}
+
+.navbar a{
+	color : purple;
+	font-family : calibri;
+	font-size : 20px;
+	font-weight : 600;
+	text-decoration : none;
+	padding : 20px;
+	display : block;
+	text-align : center;
+}
+
+.navbar a:hover{
+	background-color: black;
+}
+
+.navbar li{
+	float : right;
+}
+
+table{
+	background-color : white;
+	font-family : calibri;
+	border: 1px;
+	color: black;
+}
+
+thead{
+	background-color : yellow;
+}
+
+li{
+	text-align:center;
+	color:#FF3399;
+	font-size: 2em;
+}
+
+ol{
+	text-align:center;
+	color:#FF3399;
+	font-size: 2em;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
+.horizontal{
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  background: black;
+  margin: 5px;
+}
+
+img {
+  padding: 5px;
+}
+
+.centrer{
+	 display: block;
+	 margin-left: auto;
+	margin-right: auto;
+}
+
+
+
+.nich{
+	margin-left: auto;
+	margin-right: auto;
+}
