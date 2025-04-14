@@ -363,7 +363,7 @@ function displayRegionDropdown($regions, $selected = ''): void {
     echo '</select>';
 }
 
-function getCityById($cities, $id) {
+function getCityById(array $cities, string $id): ?array {
     foreach ($cities as $city) {
         if ($city['id'] == $id) {
             return $city;
@@ -372,54 +372,45 @@ function getCityById($cities, $id) {
     return null;
 }
 
-function getIdByCityName($cities, string $cityName) {
-    foreach ($cities as $city) {
-        if ($city['name'] == $cityName) {
-            return $city;
-        }
-    }
-    return null;
-}
-
-function logCityUsage($city): void {
-    $logFile = 'csv/usage.csv';
+function logCity(array $city, array $departments): void {
+    $logFile = 'csv/logs.csv';
     
+    // Création du fichier avec entêtes si nécessaire
     if (!file_exists($logFile)) {
-        $headers = ['date', 'ip', 'id', 'nom', 'departement', 'latitude', 'longitude'];
+        $headers = ['date', 'ip', 'id', 'nom', 'departement', 'region', 'latitude', 'longitude'];
         file_put_contents($logFile, implode(',', $headers) . "\n");
     }
     
-    $data = [ date('Y-m-d H:i:s'),
+    // Trouver la région correspondante
+    $regionCode = array_reduce($departments, function($carry, $dept) use ($city) {
+        return ($dept['code'] == $city['department_code']) ? $dept['region_code'] : $carry;
+    }, '');
+
+    // Préparation des données
+    $data = [
+        date('Y-m-d H:i:s'),
         $_SERVER['REMOTE_ADDR'],
         $city['id'],
         $city['name'],
         $city['department_code'],
+        $regionCode,
         $city['gps_lat'],
         $city['gps_lng']
     ];
     
+    // Écriture dans le fichier
     file_put_contents($logFile, implode(',', $data) . "\n", FILE_APPEND);
 }
 
-function getCityFullData($cities, $id): ?array {
-    foreach ($cities as $city) {
-        if ($city['id'] == $id) {
-            return $city;
-        }
-    }
-    return null;
-}
-
-function displayLastCity(): void {
-    if (!isset($_COOKIE['last_city'])) return;
+function getLastCitySelection() {
+    if (!isset($_COOKIE['last_city'])) return [null, null, null];
 
     $lastCity = json_decode($_COOKIE['last_city'], true);
-    if (!$lastCity) return;
+    if (!$lastCity) return [null, null, null];
 
-    echo '
-    <div class="last-choice">
-        <p>Dernière consultation :</p>
-        <p>' . htmlspecialchars($lastCity['name']) . '</p>
-        <p>le ' . htmlspecialchars($lastCity['date']) . '</p>
-    </div>';
+    return [
+        $lastCity['region'] ?? null,
+        $lastCity['department_code'] ?? null,
+        $lastCity['id'] ?? null
+    ];
 }
