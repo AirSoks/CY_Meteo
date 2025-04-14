@@ -1,0 +1,238 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+  text-align: center;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #444;
+}
+
+nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: #ccc;
+}
+
+.buttons button {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+
+.buttons button:last-child {
+  background-color: #fff;
+  color: #000;
+}
+
+.main h1 {
+  color: #fff;
+}
+
+.main button {
+  background-color: #2c2c2c;
+  color: #eee;
+  border: 1px solid #555;
+}
+
+footer {
+  background-color: #1a1a1a;
+  border-top: 1px solid #444;
+  color: #ccc;
+}
+
+footer a {
+  color: #ccc;
+}
+
+.navbar a {
+  color: #ccc;
+}
+
+.navbar a:hover {
+  background-color: #eee;
+  color: #000;
+}
+
+/* SECTION PRINCIPALE */
+.main-section {
+  background-color: #121212;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 30px;
+  padding: 40px 20px;
+  background-image: url('./illustrations/background.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-height: 500px;
+  overflow-x: hidden;
+}
+
+/* CONTAINER CARTE */
+.carte-container {
+  flex: 1;
+  max-width: 65%;
+  min-width: 400px;
+  overflow: hidden;
+}
+
+.carte-container svg,
+.carte-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* WRAPPER FORMULAIRE */
+.search-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+}
+
+/* FORMULAIRE */
+.search-form {
+  background-color: #1e1e1e;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 10px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.search-form label {
+  color: #ddd;
+  display: block;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.search-form input {
+  background-color: #2a2a2a;
+  color: #eee;
+  border: 1px solid #555;
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+}
+
+.search-form button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  background-color: #fff;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search-form button:hover {
+  background-color: #ccc;
+}
+
+/* HERO */
+.hero-section {
+  background-color: #1e1e1e;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.hero-section h1 {
+  color: #fff;
+  font-size: 3em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.hero-section button {
+  background-color: #2a2a2a;
+  color: #eee;
+  border: 1px solid #555;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+.hero-section button:hover {
+  background-color: #444;
+}
+
+.donut-wrapper {
+  position: relative;
+  width: 500px;
+  margin: 0 auto;
+  transform: rotate(180deg); /* ✅ retourne le SVG */
+}
+
+.donut-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* retourne le texte pour qu’il reste lisible */
+.donut-center-text,
+.donut-label {
+  transform: rotate(180deg);
+}
+
+/* centre du donut */
+.donut-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(180deg);
+  width: 90px;
+  height: 90px;
+  background-color: #f7f7f7;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
+/* positions des étiquettes */
+.donut-label {
+  position: absolute;
+  font-weight: bold;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.top-left {
+  top: 80px;
+  left: 25px;
+}
+
+.top-right {
+  top: 80px;
+  right: 25px;
+}
+
+.bottom {
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+}
