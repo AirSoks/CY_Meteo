@@ -1,3 +1,6 @@
+
+<body>
+
 	<div class="carte">
 		<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 667 578" xml:space="preserve">
 			<g class="region region-01" data-nom="Guadeloupe" data-code_insee="01">
@@ -139,3 +142,4 @@
 			</g>
 		</svg>
 	</div>
+</body>

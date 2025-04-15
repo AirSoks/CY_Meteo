@@ -159,10 +159,29 @@ function getWeatherIcon(int $code): string {
         2 => "⛅",
         3 => "☁️",
         45 => "🌫️",
-        61 => "🌦️",
+        48 => "❄️",
+        51 => "🌦️",
+        53 => "🌦️",
+        55 => "🌦️",
+        56 => "🌧️",
+        57 => "🌧️",
+        61 => "🌧️",
         63 => "🌧️",
-        80 => "🌦️",
+        65 => "🌧️",
+        66 => "🌨️",
+        67 => "🌨️",
+        71 => "🌨️",
+        73 => "🌨️",
+        75 => "🌨️",
+        77 => "🌨️",
+        80 => "🌧️",
+        81 => "🌧️",
+        82 => "🌧️",
+        85 => "🌨️",
+        86 => "🌨️",
         95 => "⛈️",
+        96 => "⛈️",
+        99 => "⛈️"
     ];
     return $icons[$code] ?? " ";
 }
@@ -175,15 +194,34 @@ function getWeatherIcon(int $code): string {
  */
 function getWeatherDescription(int $code): string {
     $descriptions = [
-        0 => "Ciel clair",
-        1 => "Peu nuageux",
+        0 => "Ciel dégagé",
+        1 => "Légère couverture nuageuse",
         2 => "Partiellement nuageux",
-        3 => "Couvert",
+        3 => "Ciel couvert",
         45 => "Brouillard",
+        48 => "Brouillard givrant",
+        51 => "Bruine légère",
+        53 => "Bruine modérée",
+        55 => "Bruine dense",
+        56 => "Bruine verglaçante légère",
+        57 => "Bruine verglaçante dense",
         61 => "Pluie légère",
         63 => "Pluie modérée",
+        65 => "Forte pluie",
+        66 => "Pluie verglaçante légère",
+        67 => "Pluie verglaçante intense",
+        71 => "Neige légère",
+        73 => "Neige modérée",
+        75 => "Forte neige",
+        77 => "Grésil",
         80 => "Averses légères",
-        95 => "Orages",
+        81 => "Averses modérées",
+        82 => "Violentes averses",
+        85 => "Averses de neige légères",
+        86 => "Averses de neige abondantes",
+        95 => "Orage modéré",
+        96 => "Orage avec grêle légère",
+        99 => "Orage avec grêle destructrice"
     ];
     return $descriptions[$code] ?? "Conditions inconnues";
 }
@@ -196,13 +234,28 @@ function getWeatherDescription(int $code): string {
  * @return array|null Les données météo, ou null en cas d'erreur.
  */
 function getMeteoData(float $latitude, float $longitude): ?array {
-    $url = "https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&hourly=temperature_2m,apparent_temperature,wind_speed_10m,relative_humidity_2m,weathercode&daily=sunrise,sunset&timezone=UTC";
+    $url = "https://api.open-meteo.com/v1/forecast?"
+        . "latitude=$latitude"
+        . "&longitude=$longitude"
+        . "&hourly=temperature_2m,apparent_temperature,wind_speed_10m,relative_humidity_2m,weathercode"
+        . "&daily=weathercode,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,wind_speed_10m_max,wind_gusts_10m_max,relative_humidity_2m_mean,sunshine_duration,sunrise,sunset"
+        . "&timezone=Europe/Paris";
+    
     return fetchJson($url);
 }
 
 function formatHeureMinute(string $dateTime): string {
     $dt = DateTime::createFromFormat('Y-m-d\TH:i', $dateTime);
     return $dt ? $dt->format('G\hi') : 'Invalide';
+}
+
+function convertSecondsToHours(float $seconds): string {
+    $seconds = (int)$seconds;
+    
+    $hours = floor($seconds / 3600);
+    $minutes = floor(($seconds % 3600) / 60);
+    
+    return sprintf("%dh%02d", $hours, $minutes);
 }
 
 /**
@@ -221,38 +274,94 @@ function verifierVariable($variable, string $message): bool {
 }
 
 /**
- * Affiche les données météo pour une ville et une date spécifiées.
- *
- * @param string $ville Le nom de la ville.
- * @param string $dateHeure La date et l'heure au format 'YYYY-MM-DD HH:MM'.
+ * Récupère les données météo horaires pour un créneau spécifique
+ * 
+ * @param string $ville Nom de la ville
+ * @param float $latitude Latitude géographique
+ * @param float $longitude Longitude géographique
+ * @param string $dateHeure Format 'YYYY-MM-DD HH:MM'
+ * @return array Données horaires
  */
-function afficherMeteo(string $ville, float $latitude, float $longitude, string $date): void {
+function getMeteoHoraire(string $ville, float $latitude, float $longitude, string $dateHeure): array 
+{
     $meteoData = getMeteoData($latitude, $longitude);
-    if (!verifierVariable($meteoData, "Impossible de récupérer les données météo pour " . htmlspecialchars($ville))) {
-        return;
+    
+    if (!$meteoData || !isset($meteoData['hourly'])) {
+        throw new RuntimeException("Données horaires indisponibles pour " . htmlspecialchars($ville));
     }
 
-    $newDate = str_replace(" ", "T", $date);
-    $timeIndex = array_search($newDate, $meteoData['hourly']['time']);
-    if (!verifierVariable($timeIndex, "Impossible de trouver les données météo pour la date et l'heure spécifiées : " . htmlspecialchars($date))) {
-        return;
+    $dateAPI = str_replace(" ", "T", $dateHeure);
+    $timeIndex = array_search($dateAPI, $meteoData['hourly']['time']);
+    
+    if ($timeIndex === false) {
+        throw new RuntimeException("Données introuvables pour : " . htmlspecialchars($dateHeure));
     }
 
-    $dateJour = substr($date, 0, 10);
-    $dailyIndex = array_search($dateJour, $meteoData['daily']['time']);
-	
-    $weatherCode = $meteoData['hourly']['weathercode'][$timeIndex];
+    return [
+        'ville' => $ville,
+        'date_heure' => $dateHeure,
+        'temperature' => $meteoData['hourly']['temperature_2m'][$timeIndex] . " °C",
+        'temperature_ressentie' => $meteoData['hourly']['apparent_temperature'][$timeIndex] . " °C",
+        'vent' => [
+            'vitesse' => $meteoData['hourly']['wind_speed_10m'][$timeIndex] . " km/h"
+        ],
+        'humidite' => $meteoData['hourly']['relative_humidity_2m'][$timeIndex] . " %",
+        'conditions' => [
+            'code' => $meteoData['hourly']['weathercode'][$timeIndex],
+            'icone' => getWeatherIcon($meteoData['hourly']['weathercode'][$timeIndex]),
+            'description' => getWeatherDescription($meteoData['hourly']['weathercode'][$timeIndex])
+        ]
+    ];
+}
 
-    afficherInfos($ville, [
-        'Date' => $date,
-        'Température' => $meteoData['hourly']['temperature_2m'][$timeIndex] . " °C",
-        'Température ressentie' => $meteoData['hourly']['apparent_temperature'][$timeIndex] . " °C",
-        'Vitesse du vent' => $meteoData['hourly']['wind_speed_10m'][$timeIndex] . " km/h",
-        'Humidité' => $meteoData['hourly']['relative_humidity_2m'][$timeIndex] . " %",
-        'Lever du soleil' => $dailyIndex !== false ? formatHeureMinute($meteoData['daily']['sunrise'][$dailyIndex]) : "Inconnu",
-        'Coucher du soleil' => $dailyIndex !== false ? formatHeureMinute($meteoData['daily']['sunset'][$dailyIndex]) : "Inconnu",
-        'Météo' => getWeatherIcon($weatherCode) . " " . getWeatherDescription($weatherCode)
-    ]);
+/**
+ * Récupère les données météo consolidées pour une journée
+ * 
+ * @param string $ville Nom de la ville
+ * @param float $latitude Latitude géographique
+ * @param float $longitude Longitude géographique
+ * @param string $date Format 'YYYY-MM-DD'
+ * @return array Données journalières
+ */
+function getMeteoJournaliere(string $ville, float $latitude, float $longitude, string $date): array 
+{
+    $meteoData = getMeteoData($latitude, $longitude);
+    
+    if (!$meteoData || !isset($meteoData['daily'])) {
+        throw new RuntimeException("Données journalières indisponibles pour " . htmlspecialchars($ville));
+    }
+
+    $dailyIndex = array_search($date, $meteoData['daily']['time']);
+    
+    if ($dailyIndex === false) {
+        throw new RuntimeException("Données introuvables pour le : " . htmlspecialchars($date));
+    }
+
+    return [
+        'ville' => $ville,
+        'date' => $date,
+        'temperatures' => [
+            'min' => $meteoData['daily']['temperature_2m_min'][$dailyIndex] . " °C",
+            'max' => $meteoData['daily']['temperature_2m_max'][$dailyIndex] . " °C",
+            'moyenne' => $meteoData['daily']['temperature_2m_mean'][$dailyIndex] . " °C"
+        ],
+        'precipitation' => $meteoData['daily']['precipitation_sum'][$dailyIndex] . " mm",
+        'vent' => [
+            'vitesse_max' => $meteoData['daily']['wind_speed_10m_max'][$dailyIndex] . " km/h",
+            'rafales_max' => $meteoData['daily']['wind_gusts_10m_max'][$dailyIndex] . " km/h"
+        ],
+        'humidite' => $meteoData['daily']['relative_humidity_2m_mean'][$dailyIndex] . " %",
+        'ensoleillement' => [
+            'lever' => formatHeureMinute($meteoData['daily']['sunrise'][$dailyIndex]),
+            'coucher' => formatHeureMinute($meteoData['daily']['sunset'][$dailyIndex]),
+            'duree' => convertSecondsToHours($meteoData['daily']['sunshine_duration'][$dailyIndex])
+        ],
+        'conditions' => [
+            'code' => $meteoData['daily']['weathercode'][$dailyIndex],
+            'icone' => getWeatherIcon($meteoData['daily']['weathercode'][$dailyIndex]),
+            'description' => getWeatherDescription($meteoData['daily']['weathercode'][$dailyIndex])
+        ]
+    ];
 }
 
 
@@ -414,3 +523,286 @@ function getLastCitySelection() {
         $lastCity['id'] ?? null
     ];
 }
+
+function afficherImageAleatoire() {
+    $dossier = 'illustrations';
+    if (!is_dir($dossier)) {
+        echo "Le dossier 'illustrations' n'existe pas.";
+        return;
+    }
+
+    $images = glob($dossier . '/*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE);
+    if (empty($images)) {
+        echo "Aucune image trouvée dans le dossier 'illustrations'.";
+        return;
+    }
+
+    $imageAleatoire = $images[array_rand($images)];
+    echo '<img src="' . htmlspecialchars($imageAleatoire) . '" alt="Image aléatoire">';
+}
+
+function getRegionCodeByDepartment(array $departments, string $departmentCode): string {
+    foreach ($departments as $dept) {
+        if ($dept['code'] === $departmentCode) {
+            return $dept['region_code'];
+        }
+    }
+    return '';
+}
+
+function traduireDate(string $dateAnglaise): string {
+    // Tableaux de traduction
+    $jours = [
+        'Monday' => 'Lundi', 
+        'Tuesday' => 'Mardi',
+        'Wednesday' => 'Mercredi',
+        'Thursday' => 'Jeudi',
+        'Friday' => 'Vendredi',
+        'Saturday' => 'Samedi',
+        'Sunday' => 'Dimanche'
+    ];
+    
+    $mois = [
+        'January' => 'janvier', 
+        'February' => 'février',
+        'March' => 'mars',
+        'April' => 'avril',
+        'May' => 'mai',
+        'June' => 'juin',
+        'July' => 'juillet',
+        'August' => 'août',
+        'September' => 'septembre',
+        'October' => 'octobre',
+        'November' => 'novembre',
+        'December' => 'décembre'
+    ];
+
+    // Remplace les termes anglais par les termes français
+    return str_replace(
+        array_merge(array_keys($jours), array_keys($mois)),
+        array_merge(array_values($jours), array_values($mois)),
+        $dateAnglaise
+    );
+}
+
+function getLibelleDate(DateTime $date): string {
+    $aujourdhui = new DateTime('today');
+    $demain = (new DateTime('tomorrow'))->setTime(0, 0);
+    $apresDemain = (new DateTime('tomorrow'))->modify('+1 day')->setTime(0, 0);
+
+    return match(true) {
+        $date == $aujourdhui => "Aujourd'hui à",
+        $date == $demain => "Demain à",
+        $date == $apresDemain => "Après-demain à",
+        default => traduireDate($date->format('l')) . " à"
+    };
+}
+
+function renderDonut($percent, $mainText, $subText, $colorClass, $fontSize = 7, $textColorClass = null): void {
+    $isNegative = $percent < 0;
+    $dash = abs($percent);
+    $gap = 100 - $dash;
+    $transform = $isNegative ? 'scale(-1,1) translate(-40,0)' : '';
+    ?>
+    <svg width="100%" height="100%" viewBox="0 0 40 40" class="donut">
+        <circle class="donut-hole" cx="20" cy="20" r="15.91549430918954" fill="var(--donut-hole)"></circle>
+        <circle class="donut-ring" cx="20" cy="20" r="15.91549430918954" fill="transparent" stroke-width="3.5" stroke="var(--donut-ring)"></circle>
+        <circle class="donut-segment" cx="20" cy="20" r="15.91549430918954"
+            fill="transparent" stroke-width="3"
+            stroke="var(--<?= htmlspecialchars($colorClass) ?>)"
+            stroke-dasharray="<?= $dash ?> <?= $gap ?>"
+            stroke-dashoffset="25"
+            transform="<?= $transform ?>"></circle>
+        <g class="donut-text">
+            <text y="50%">
+                <tspan x="50%" text-anchor="middle" class="donut-percent" fill="var(--<?= htmlspecialchars($textColorClass ?? $colorClass) ?>)" style="font-size:<?= htmlspecialchars($fontSize) ?>px"><?= htmlspecialchars($mainText) ?></tspan>
+            </text>
+            <text y="70%">
+                <tspan x="50%" text-anchor="middle" class="donut-data" fill="var(--donut-subtext)"><?= htmlspecialchars($subText) ?></tspan>
+            </text>
+        </g>
+    </svg>
+    <?php
+}
+
+/**
+ * Affiche 3 donuts pour la température, l'humidité et le vent
+ * 
+ * @param array $meteoData Tableau des données météo (sortie de getMeteoDataArray)
+ */
+function afficherDonutsMeteo(array $meteoData): void {
+    // Extraction des valeurs numériques
+    $temperatureMoy = (float)str_replace(' °C', '', $meteoData['temperatures']['moyenne']);
+    $humiditeMoy = (float)str_replace(' %', '', $meteoData['humidite']);
+    $ventMax = (float)str_replace(' km/h', '', $meteoData['vent']['vitesse_max']);
+    
+    // Détermination de la classe de température
+    $tempClass = match(true) {
+        $temperatureMoy < 0 => 'donut-cold',
+        $temperatureMoy < 10 => 'donut-cool',
+        $temperatureMoy < 20 => 'donut-mild',
+        $temperatureMoy < 30 => 'donut-warm',
+        default => 'donut-hot'
+    };
+
+    // Configuration des styles via classes CSS
+    $styles = [
+        'temperature' => [
+            'colorClass' => $tempClass,
+            'fontSize' => 8.5
+        ],
+        'humidite' => [
+            'colorClass' => 'donut-humidity',
+            'fontSize' => 10
+        ],
+        'vent' => [
+            'colorClass' => 'donut-wind',
+            'fontSize' => 6.5
+        ]
+    ];
+    ?>
+    <div class="donut-row">
+        <div class="svg-item">
+            <?php renderDonut(
+                $humiditeMoy, 
+                $meteoData['humidite'], 
+                'Humidité', 
+                $styles['humidite']['colorClass'],
+                $styles['humidite']['fontSize']
+            ); ?>
+        </div>
+        <div class="svg-item">
+            <?php renderDonut(
+                $temperatureMoy, 
+                $meteoData['temperatures']['moyenne'], 
+                'Température', 
+                $styles['temperature']['colorClass'],
+                $styles['temperature']['fontSize']
+            ); ?>
+        </div>
+        <div class="svg-item">
+            <?php renderDonut(
+                $ventMax, 
+                $meteoData['vent']['vitesse_max'], 
+                'Vitesse du vent',
+                $styles['vent']['colorClass'],
+                $styles['vent']['fontSize']
+            ); ?>
+        </div>
+    </div>
+    <?php
+}
+
+function splitDescription(string $description): array {
+    $words = explode(' ', $description, 2);
+    if (count($words) === 2) {
+        return [$words[0], $words[1]];
+    }
+    return [$description, ''];
+}
+
+function afficherCarteMeteo(array $meteoData): void {
+    [$line1, $line2] = splitDescription($meteoData['conditions']['description']);
+    ?>
+    <svg width="100%" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="100%" height="100%" rx="15" ry="15" fill="var(--meteo-card-bg)"/>
+
+        <g font-family="Arial, sans-serif" text-anchor="middle" fill="var(--meteo-text)">
+		
+            <text x="55" y="40" font-size="16" fill="var(--meteo-sun)" dominant-baseline="middle">
+                <?= $meteoData['ensoleillement']['lever'] ?> 🌅
+            </text>
+            <text x="52.5" y="65" font-size="14" dominant-baseline="middle">
+                Levé du soleil
+            </text>
+			
+            <text x="200" y="30" font-size="30" dominant-baseline="middle">
+                <?= $meteoData['conditions']['icone'] ?>
+            </text>
+            <text x="200" y="60" font-size="17" dominant-baseline="middle">
+                <tspan x="200" dy="0"><?= htmlspecialchars($line1) ?></tspan>
+                <?php if ($line2 !== ''): ?>
+                    <tspan x="200" dy="18"><?= htmlspecialchars($line2) ?></tspan>
+                <?php endif; ?>
+            </text>
+			
+			<text x="375" y="40" font-size="16" fill="var(--meteo-sun)" dominant-baseline="middle" text-anchor="end">
+                🌇 <?= $meteoData['ensoleillement']['coucher'] ?>
+            </text>
+            <text x="390" y="65" font-size="14"  dominant-baseline="middle" text-anchor="end">
+                Couché du soleil
+            </text>
+			
+        </g>
+    </svg>
+    <?php
+}
+
+function afficherHeaderMeteo(array $data): void {
+    $ville = $data['ville'];
+    $date = new DateTime($data['date']);
+    $baseUrl = $_SERVER['REQUEST_URI'];
+    $baseUrl = preg_replace('/([?&]date=[^&]*)/', '', $baseUrl);
+    $separator = (strpos($baseUrl, '?') === false) ? '?' : '&';
+
+    $datePrecedent = (clone $date)->modify('-1 day');
+    $dateSuivant = (clone $date)->modify('+1 day');
+
+	$libellePrecedent = traduireDate($datePrecedent->format('d F'));
+	$libelleSuivant = traduireDate($dateSuivant->format('d F'));
+    ?>
+    <svg width="100%" height="180" viewBox="0 0 650 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="100%" height="100%" rx="15" ry="15" fill="var(--meteo-card-bg)"/>
+        
+        <g font-family="Arial, sans-serif" fill="var(--meteo-text)" text-anchor="middle">
+		
+            <text x="50%" y="45" font-size="18" fill="var(--meteo-sun)">
+                <?= getLibelleDate($date) ?>
+            </text>
+            
+            <text x="50%" y="90" font-size="24" font-weight="bold">
+                <?= htmlspecialchars($ville) ?>
+            </text>
+            
+            <text x="50%" y="140" font-size="16" font-weight="bold" fill="var(--meteo-sun)">
+                <?= traduireDate($date->format('l d F Y')) ?>
+            </text>
+            
+            <a href="<?= $baseUrl . $separator ?>date=<?= $datePrecedent->format('Y-m-d') ?>" class="nav-link">
+                <rect x="20" y="60" width="40" height="40" rx="8" fill="var(--meteo-nav-bg)"/>
+                <text x="40" y="85" font-size="24" fill="var(--meteo-sun)">←</text>
+            </a>
+            <text x="38" y="120" font-size="14" fill="var(--meteo-text)" text-anchor="middle" font-style="italic">
+                <?= $libellePrecedent ?>
+            </text>
+            
+            <a href="<?= $baseUrl . $separator ?>date=<?= $dateSuivant->format('Y-m-d') ?>" class="nav-link">
+                <rect x="590" y="60" width="40" height="40" rx="8" fill="var(--meteo-nav-bg)"/>
+                <text x="610" y="85" font-size="24" fill="var(--meteo-sun)">→</text>
+            </a>
+            <text x="608" y="120" font-size="14" fill="var(--meteo-text)" text-anchor="middle" font-style="italic">
+                <?= $libelleSuivant ?>
+            </text>
+        </g>
+    </svg>
+    <?php
+}
+
+function validateDateInterval($date) {
+	
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        return false;
+    }
+
+    $dateObj = DateTime::createFromFormat('Y-m-d', $date);
+    if (!$dateObj || $dateObj->format('Y-m-d') !== $date) {
+        return false;
+    }
+
+    $now = new DateTime();
+    $interval = $now->diff($dateObj);
+    $daysDifference = (int)$interval->format('%r%a');
+
+    return $daysDifference >= 0 && $daysDifference <= 5;
+}
+?>

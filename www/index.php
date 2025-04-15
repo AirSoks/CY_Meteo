@@ -1,50 +1,60 @@
 <?php
+	$title = "Accueil";
+	$description = "Bienvenue sur mon Meteo COZI";
 
-$title = "Accueil";
-$description = "Bienvenue sur mon Meteo COZI";
+	require './include/header.inc.php';
+	require './include/function.inc.php';
 
-require './include/header.inc.php';
-require './include/function.inc.php';
+	// Chargement des données en premier
+	$cities = getCitiesFromCSV('csv/cities.csv');
+	$departments = getDepartmentsFromCSV('csv/departments.csv');
+	$regions = getRegionsFromCSV('csv/regions.csv');
 
-// Chargement des données en premier
-$cities = getCitiesFromCSV('csv/cities.csv');
-$departments = getDepartmentsFromCSV('csv/departments.csv');
-$regions = getRegionsFromCSV('csv/regions.csv');
+	// Récupération de la dernière sélection
+	[$lastRegion, $lastDepartment, $lastCityId] = getLastCitySelection();
 
-// Récupération de la dernière sélection
-[$lastRegion, $lastDepartment, $lastCityId] = getLastCitySelection();
+	// Gestion des paramètres avec priorité au GET
+	$regionCode = $_GET['region'] ?? $lastRegion ?? '84';
+	$departmentCode = $_GET['departement'] ?? $lastDepartment ?? '95';
+	$cityId = $_GET['ville'] ?? $lastCityId ?? '35459';
 
-// Gestion des paramètres avec priorité au GET
-$regionCode = $_GET['region'] ?? $lastRegion ?? '84';
-$departmentCode = $_GET['departement'] ?? $lastDepartment ?? '95';
-$cityId = $_GET['ville'] ?? $lastCityId ?? '';
-
-// Filtrage dynamique
-$filteredDepartments = filterDepartmentsByRegion($departments, $regionCode);
-$filteredCities = filterCitiesByDepartment($cities, $departmentCode);
+	// Filtrage dynamique
+	$filteredDepartments = filterDepartmentsByRegion($departments, $regionCode);
+	$filteredCities = filterCitiesByDepartment($cities, $departmentCode);
+	
+	$currentDate = date('Y-m-d');
 ?>
 
-<main>
-<h1>Météo CoZi</h1>
-<button>Choisir votre ville</button>
-<div id="tooltip" style="position: absolute; background: white; border: 1px solid black; padding: 5px; display: none; font-size: 14px;"></div>
-<div class="main-section">
-    <?php require './include/carte-interactive.php';?>
-	
-    <form method="GET" action="meteo.php" class="search-form">
-        <label for="region-select">Région</label>
-        <?php displayRegionDropdown($regions, $regionCode) ?>
-        
-        <label for="departement-select">Département</label>
-        <?php displayDepartmentDropdown($filteredDepartments, $departmentCode) ?>
-        
-        <label for="ville-select">Ville</label>
-        <?php displayCityDropdown($filteredCities, $cityId) ?>
-        
-        <button type="submit">Voir la météo</button>
-    </form>
 
-</div>
+<main>
+	<div class="hero-section">
+		<h1>Météo CoZi</h1>
+		<button>Connaître la météo</button>
+	</div>
+	<?php //afficherImageAleatoire(); ?>
+	
+	<div id="tooltip" style="position: absolute; background: white; border: 1px solid black; padding: 5px; display: none; font-size: 14px;"></div>
+
+	<div class="main-section">
+		<?php require './include/carte-interactive.php';?>
+		
+		<form method="GET" action="meteo.php" id="search-form">
+			
+			<label for="region-select">Région</label>
+			<?php displayRegionDropdown($regions, $regionCode) ?>
+			
+			<label for="departement-select">Département</label>
+			<?php displayDepartmentDropdown($filteredDepartments, $departmentCode) ?>
+			
+			<label for="ville-select">Ville</label>
+			<?php displayCityDropdown($filteredCities, $cityId) ?>
+		
+			<input type="hidden" name="date" value="<?php echo htmlspecialchars($currentDate); ?>">
+			
+			<button type="submit">Voir la météo</button>
+		</form>
+	</div>
+
 </main>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -85,20 +95,20 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('region-select').addEventListener('change', function() {
         document.getElementById('departement-select').value = ''; // Réinitialise le département
         document.getElementById('ville-select').value = ''; // Réinitialise la ville
-        this.form.action = '';
+        this.form.action = '#search-form';
         this.form.submit();
     });
 
     // Quand l'utilisateur sélectionne un département
     document.getElementById('departement-select').addEventListener('change', function() {
         document.getElementById('ville-select').value = ''; // Réinitialise la ville
-        this.form.action = '';
+        this.form.action = '#search-form';
         this.form.submit();
     });
 
     // Quand l'utilisateur sélectionne une ville
     document.getElementById('ville-select').addEventListener('change', function() {
-        this.form.action = '';
+        this.form.action = '#search-form';
         this.form.submit();
     });
 
@@ -117,8 +127,12 @@ document.addEventListener("DOMContentLoaded", function () {
             params.delete('ville'); // Supprime la ville sélectionnée (le cas échéant)
 
             // Recharge la page avec les nouveaux paramètres
-            window.location.href = `${window.location.pathname}?${params.toString()}`;
+            window.location.href = `${window.location.pathname}?${params.toString()}#search-form`;
         });
     });
 });
 </script>
+
+<?php 
+	require './include/footer.inc.php'; 
+?>

@@ -2,29 +2,80 @@
 require "include/header.inc.php";
 require "include/function.inc.php";
 
-$villeId = $_GET['ville'] ?? null;
-$dateActuelle = date('Y-m-d H:00');
-
-if (!$villeId) die("Paramètre ville manquant");
-
 $cities = getCitiesFromCSV('csv/cities.csv');
-$departments = getDepartmentsFromCSV('csv/departments.csv'); // Chargement des départements
-$city = getCityById($cities, $villeId);
+$departments = getDepartmentsFromCSV('csv/departments.csv');
 
-if (!$city) die("Ville introuvable");
+$defaultCityId = '35459';
+[$lastRegion, $lastDepartment, $lastCityId] = getLastCitySelection();
+$villeId = $_GET['ville'] ?? $lastCityId ?? $defaultCityId;
+
+if (!$villeId || !($city = getCityById($cities, $villeId))) {
+    die("Paramètre ville invalide : $villeId");
+}
 
 logCity($city, $departments);
 
-setcookie('last_city', json_encode([
+$cookieData = [
     'id' => $villeId,
     'date' => date('Y-m-d H:i:s'),
     'name' => $city['name'],
     'department_code' => $city['department_code'],
-    'region' => array_reduce($departments, function($carry, $dept) use ($city) {
-        return ($dept['code'] == $city['department_code']) ? $dept['region_code'] : $carry;
-    }, '')
-]), time() + 30*24*3600, '/');
+    'region' => getRegionCodeByDepartment($departments, $city['department_code'])
+];
+setcookie('last_city', json_encode($cookieData), time() + 30*24*3600, '/', '', true, true);
 
-afficherMeteo($city['name'], (float)$city['gps_lat'], (float)$city['gps_lng'], $dateActuelle);
+$dateJour = $_GET['date'] ?? date('Y-m-d');
+
+if (!validateDateInterval($dateJour)) {
+	
+    $newParams = $_GET;
+    $newParams['date'] = date('Y-m-d');
+    
+    header('Location: meteo.php?' . http_build_query($newParams));
+    exit;
+}
+
+$dateJourHeure = $dateJour . ' ' . date('H:00');
+?>
+<div class="meteo-container">
+<?php	
+try {
+	
+    $dataJournalier = getMeteoJournaliere(
+        $city['name'], 
+        (float)$city['gps_lat'], 
+        (float)$city['gps_lng'], 
+        $dateJour 
+    );
+    
+    $dataHoraire = getMeteoHoraire(
+        $city['name'], 
+        (float)$city['gps_lat'], 
+        (float)$city['gps_lng'], 
+        $dateJourHeure 
+    );
+	
+	// echo '<h2>Données Journalières</h2>';
+    // print_r($dataJournalier);
+    // echo '<hr>';
+    
+    // echo '<h2>Données Horaire</h2>';
+    // print_r($dataHoraire);
+    // echo '<hr>';
+
+
+    afficherHeaderMeteo($dataJournalier);
+    afficherCarteMeteo($dataJournalier);
+	
+	require "include/meteo-donuts.inc.php";
+
+} catch (RuntimeException $e) {
+    die("Erreur de récupération des données météo : " . htmlspecialchars($e->getMessage()));
+}
+?>
+</div>
+<?php
+
+require './include/footer.inc.php';
 
 ?>
