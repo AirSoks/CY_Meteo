@@ -8,11 +8,11 @@
   --button-bg: #dadada;
 
   /* Cartes */
-  --map-stroke: #000000;
-  --map-stroke-opacity: 0.25;
-  --map-fill: #525252;
-  --map-hover-fill: #909090;
-  --map-path-hover-fill: #b2b0b0;
+  --map-stroke: #727272;
+  --map-stroke-opacity: 0.33;
+  --map-fill: #202631;
+  --map-hover-fill: #3a3a4d;
+  --map-path-hover-fill: #6a6a8a;
   
   /* Composants météo */
   --meteo-card-bg: #202631;
@@ -125,7 +125,7 @@ nav a {
 }
 
 .hero-section button:hover {
-  background-color: var(--button-bg);
+  background-color: var(--bg-color);
 }
 
 .main-section {

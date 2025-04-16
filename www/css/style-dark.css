@@ -1,40 +1,40 @@
 :root {
-  /* Couleurs mode clair */
-  --bg-color: #ffffff;
-  --text-color: #333333;
-  --primary-color: #000000;
-  --secondary-color: #f5f5f5;
-  --border-color: #dddddd;
-  --button-bg: #dadada;
-
+  /* Couleurs mode sombre */
+  --bg-color: #1a1a1a;
+  --text-color: #f5f5f5;
+  --primary-color: #ffffff;
+  --secondary-color: #2d2d2d;
+  --border-color: #444444;
+  --button-bg: #494949;
+  
   /* Cartes */
-  --map-stroke: #000000;
-  --map-stroke-opacity: 0.25;
-  --map-fill: #525252;
-  --map-hover-fill: #909090;
-  --map-path-hover-fill: #b2b0b0;
+  --map-stroke: #8c8c8c;
+  --map-stroke-opacity: 0.33;
+  --map-fill: #202631;
+  --map-hover-fill: #3a3a4d;
+  --map-path-hover-fill: #6a6a8a;
   
   /* Composants météo */
-  --meteo-card-bg: #202631;
-  --meteo-text: #EEE;
-  --meteo-sun: #FFD700;
-  --meteo-nav-bg: #2C3A4D;
+  --meteo-card-bg: #2c2c2c;
+  --meteo-text: #e6e6e6;
+  --meteo-sun: #d2b438;
+  --meteo-nav-bg: #414141;
   
   /* Couleurs des donuts */
-  --donut-hole: #202631;
-  /* --donut-ring: #202631; */
-  --donut-subtext: #abb1ba;
+  --donut-hole: #2c2c2c;
+  --donut-ring: #2c2c2c;
+  --donut-subtext: #8c8c8c;
   
   /* Couleurs spécifiques */
-  --donut-humidity: #1F618D;
-  --donut-wind: #7E8CE0;
+  --donut-humidity: #3a7ca5;
+  --donut-wind: #6b7dbd;
   
   /* Couleurs des températures */
-  --donut-cold: #4A90E2;
-  --donut-cool: #5BC0EB;
-  --donut-mild: #9BC53D;
-  --donut-warm: #FFA500;
-  --donut-hot: #E71D36;
+  --donut-cold: #2a7de2;
+  --donut-cool: #3ac0eb;
+  --donut-mild: #7cb53d; 
+  --donut-warm: #ff8c00;
+  --donut-hot: #d91e2d;
 }
 
 /* RÉGLAGES GLOBAUX */
@@ -188,6 +188,7 @@ g path:hover {
   cursor: pointer;
   transition: background-color 0.3s;
   color: var(--primary-color);
+  background-color: var(--button-bg);
   font-size: 15px;
 }
 
