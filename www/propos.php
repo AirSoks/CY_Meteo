@@ -1,32 +1,39 @@
 <?php 
-$title = "Accueil";
-$description = "Bienvenue sur mon Meteo COZI";
+	$title = "Accueil";
+	$description = "Bienvenue sur mon Meteo COZI";
 
-require './include/header.inc.php'; 
+	require './include/header.inc.php'; 
+	require "include/function.inc.php";
 ?>
 <main>
-  <section>
-    <h1>À propos de notre projet</h1>
-    <p> Ce projet a lieu dans le cadre de notre apprentissage en développement web dans le cursus de la L2 informatique CY Paris université. Nous sommes sous la direction de Marc Lemaire Professeur Certifié qui encadre l'ensemble de l'apprentissage du développement web au sein de l'université.</p>
-  </section>
 
-  <section>
-    <h2>Qui sommes-nous ?</h2>
-    <div>
-      <h3>Benjamin ZIVIC</h3>
-      <p> Je suis étuidaint en L2 informatique à CY Paris université. J'ai un BAC qui concerne les deux spécialités suivantes : Mathématiques et Histoire Géographie Géopolitique et Sciences Politiques.
-	  Après la première année qui est la L1 MIPI (Mathématiques, Informatique, Physique et Ingénierie) je me suis orienté en informatique car cette science me plaît et m'intéresse.</p>
+<div class="container">
+    <div class="card">
+		<h2>Qui sommes-nous ?</h2>
+		<div class="team-profiles">
+			<figure>
+				<img src="./images/moon.jpg" alt="Logo Mathéo">
+				<figcaption>COSTA Mathéo</figcaption>
+			</figure>
+			<figure>
+				<img src="./images/fleurLys.jpg" alt="Logo Benjamin">
+				<figcaption>ZIVIC Benjamin</figcaption>
+			</figure>
+		</div>
+	</div>
+    <div class="card">
+        <h2>Notre Projet</h2>
+			<p>Nous sommes ZIVIC Benjamin et Costa Mathéo, deux étudiants en licence d'informatique à l’université CY Cergy Paris Université, sur le site de Saint-Martin à Cergy.</p>
+			<p>Ce site web a été réalisé dans le cadre de notre projet final collaboratif pour l’UE de développement web, encadrée par notre professeur Marc Lemaire.</p>
+			<p>Notre objectif est simple : proposer une application web fonctionnelle, intuitive et accessible, permettant aux utilisateurs de consulter la météo en temps réel partout en France.</p>
+			<p>Ce projet reflète l’ensemble des compétences que nous avons acquises durant le semestre. Il va des bases du HTML et du CSS, jusqu’à des technologies plus avancées comme PHP et JavaScript, notamment pour la mise en place de formulaires et d'une carte interactive.
+			   Nous avons également découvert une nouvelle dimension du développement web avec l’intégration de plusieurs API comme notamment une API météo, qui nous a permis d’afficher des données fiables, actualisées et lisibles pour l’utilisateur.</p>
     </div>
+</div>
 
-    <div>
-      <h3>Mathéo COSTA</h3>
-      <p>Description Mathéo</p>
-    </div>
-  </section>
 
 </main>
 
 <?php 
-// Utilisation de include pour éviter une erreur fatale si le fichier est manquant
-@include './include/footer.inc.php'; 
+	require './include/footer.inc.php'; 
 ?>

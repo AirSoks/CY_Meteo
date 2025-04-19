@@ -14,7 +14,7 @@
 	[$lastRegion, $lastDepartment, $lastCityId] = getLastCitySelection();
 
 	// Gestion des paramètres avec priorité au GET
-	$regionCode = $_GET['region'] ?? $lastRegion ?? '84';
+	$regionCode = $_GET['region'] ?? $lastRegion ?? '11';
 	$departmentCode = $_GET['departement'] ?? $lastDepartment ?? '95';
 	$cityId = $_GET['ville'] ?? $lastCityId ?? '35459';
 
@@ -25,15 +25,18 @@
 	$currentDate = date('Y-m-d');
 ?>
 
-
 <main>
-	<div class="hero-section">
+<?php 
+	$imageBg = getImageAleatoire(); 
+?>
+	 <div class="hero-section" style="background-image: url('<?php echo $imageBg; ?>'); background-size: cover; background-position: center; background-repeat: no-repeat;">
 		<h1>Météo CoZi</h1>
-		<button>Connaître la météo</button>
+		<a href="#search-form">
+			<button class="button">Connaître la météo</button>
+		</a>
 	</div>
-	<?php //afficherImageAleatoire(); ?>
 	
-	<div id="tooltip" style="position: absolute; background: white; border: 1px solid black; padding: 5px; display: none; font-size: 14px;"></div>
+	<div id="tooltip" style="position: absolute; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 5px; display: none; font-size: 14px;"></div>
 
 	<div class="main-section">
 		<?php require './include/carte-interactive.php';?>
@@ -48,8 +51,6 @@
 			
 			<label for="ville-select">Ville</label>
 			<?php displayCityDropdown($filteredCities, $cityId) ?>
-		
-			<input type="hidden" name="date" value="<?php echo htmlspecialchars($currentDate); ?>">
 			
 			<button type="submit">Voir la météo</button>
 		</form>
@@ -91,7 +92,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const departementSelect = document.getElementById('departement-select');
     const villeSelect = document.getElementById('ville-select');
 
-
     document.getElementById('region-select').addEventListener('change', function() {
         document.getElementById('departement-select').value = ''; // Réinitialise le département
         document.getElementById('ville-select').value = ''; // Réinitialise la ville
@@ -110,6 +110,14 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('ville-select').addEventListener('change', function() {
         this.form.action = '#search-form';
         this.form.submit();
+    });
+	
+    // Quand l'utilisateur envoie le formulaire
+	document.getElementById('search-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const ville = villeSelect.value;
+        const date = '<?= date('Y-m-d') ?>';
+        window.location.href = `meteo.php?ville=${ville}&date=${date}`;
     });
 
     // === Gestion du clic sur un département de la carte === \\

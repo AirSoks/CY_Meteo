@@ -14,7 +14,7 @@ $tempClass = match (true) {
 ?>
 
 <div class="donut-row">
-    <!-- Donut Humidité -->
+
     <div class="svg-item">
         <?php 
         renderDonut(
@@ -26,8 +26,7 @@ $tempClass = match (true) {
         ); 
         ?>
     </div>
-
-    <!-- Donut Température -->
+	
     <div class="svg-item">
         <?php 
         renderDonut(
@@ -39,8 +38,7 @@ $tempClass = match (true) {
         ); 
         ?>
     </div>
-
-    <!-- Donut Vent -->
+	
     <div class="svg-item">
         <?php 
         renderDonut(
