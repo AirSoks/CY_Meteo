@@ -1,6 +1,6 @@
 <?php
 	$title = "Accueil";
-	$description = "Bienvenue sur mon Meteo COZI";
+	$description = "Bienvenue sur la Meteo COZI";
 
 	require './include/header.inc.php';
 	require './include/function.inc.php';
@@ -29,15 +29,13 @@
 <?php 
 	$imageBg = getImageAleatoire(); 
 ?>
-	 <div class="hero-section" style="background-image: url('<?php echo $imageBg; ?>'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+	<div class="hero-section" style="background-image: url('<?php echo $imageBg; ?>'); background-size: cover; background-position: center; background-repeat: no-repeat;">
 		<h1>Météo CoZi</h1>
-		<a href="#search-form">
-			<button class="button">Connaître la météo</button>
-		</a>
+		<a href="#search-form" class="button">Connaître la météo</a>
 	</div>
 	
 	<div id="tooltip" style="position: absolute; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 5px; display: none; font-size: 14px;"></div>
-
+	
 	<div class="main-section">
 		<?php require './include/carte-interactive.php';?>
 		
@@ -117,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         const ville = villeSelect.value;
         const date = '<?= date('Y-m-d') ?>';
-        window.location.href = `meteo.php?ville=${ville}&date=${date}`;
+        window.location.href = `meteo.php?ville=${ville}&amp;date=${date}`;
     });
 
     // === Gestion du clic sur un département de la carte === \\

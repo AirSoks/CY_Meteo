@@ -1,28 +1,37 @@
 <?php
 
 /**
+ * @file
+ * @brief Fichier principal des fonctions utilitaires du projet Meteo COZI
+ * @mainpage Meteo COZI - Documentation technique
+ * 
+ * Ce projet utilise des fonctions PHP procédurales trié par thème.
+ */
+
+/**
  * *************************************************************************
  * Fonctions Utilitaires Générales
  * *************************************************************************
  */
-
+ 
 /**
- * Vérifie si une variable est définie et non vide, sinon affiche un message d'erreur.
- *
- * @param mixed $variable La variable à vérifier.
- * @param string $message Le message d'erreur personnalisé.
- * @return bool Retourne true si la variable est valide, sinon false.
+ * @param mixed $variable Variable à vérifier
+ * @param string $message Message d'erreur format HTML
+ * @return bool True si valide, sinon false
  */
 function verifierVariable($variable, string $message): bool {
     if (!isset($variable) || empty($variable)) {
-        echo '<p class="incorect_var">$message</p>';
+        echo "<p class=\"incorrect_var\">$message</p>";
         return false;
     }
     return true;
 }
 
 /**
- * Formate une date et heure en format heure:minute.
+ * Formate une date/heure au format ISO 8601 (ex: 2023-12-25T14:30) en heure:minute
+ * 
+ * @param string $dateTime Chaîne au format Y-m-d\TH:i (ex: "2023-12-25T14:30")
+ * @return string Heure formatée (ex: "14h30") ou "Invalide" si format incorrect
  */
 function formatHeureMinute(string $dateTime): string {
     $dt = DateTime::createFromFormat('Y-m-d\TH:i', $dateTime);
@@ -30,7 +39,10 @@ function formatHeureMinute(string $dateTime): string {
 }
 
 /**
- * Convertit des secondes en heures et minutes.
+ * Convertit des secondes en format horaire heures:minutes
+ * 
+ * @param float $seconds Durée en secondes (décimales ignorées par conversion interne)
+ * @return string Durée formatée sous forme "XhYY" (ex: "2h05" pour 2h05min)
  */
 function convertSecondsToHours(float $seconds): string {
     $seconds = (int)$seconds;
@@ -48,7 +60,9 @@ function convertSecondsToHours(float $seconds): string {
  */
 
 /**
- * Récupère l'IP du visiteur
+ * Récupère l'adresse IP publique du client
+ *
+ * @return string IPv4 ou IPv6
  */
 function getIp(): string {
     return $_SERVER['REMOTE_ADDR'];
@@ -116,7 +130,12 @@ function afficherInfos(string $titre, array $infos): void {
     echo "</ul>";
 }
 
-function getImageAleatoire() {
+/**
+ * Récupère un chemin d'image aléatoire depuis le dossier 'illustrations'
+ * 
+ * @return string|null Chemin HTML-échappé de l'image ou null si dossier invalide/vide
+ */
+function getImageAleatoire(): ?string {
     $dossier = 'illustrations';
     if (!is_dir($dossier)) {
         return null;
@@ -131,7 +150,9 @@ function getImageAleatoire() {
 }
 
 /**
- * Séparation de la description en plusieurs parties.
+ * Sépare une chaîne au premier espace
+ * @param string $description Texte à séparer
+ * @return array{0: string, 1: string} Tableau avec 2 éléments
  */
 function splitDescription(string $description): array {
     $words = explode(' ', $description, 2);
@@ -247,6 +268,23 @@ function chargerMeteoData(float $latitude, float $longitude): ?array {
 
 /**
  * Récupère les données météo consolidées pour une journée
+ * 
+ * @param array $meteoData Données météo brutes (doit contenir une clé 'daily')
+ * @param string $ville Nom de la ville analysée
+ * @param string $date Date au format YYYY-MM-DD
+ * 
+ * @return array{
+ *     ville: string,
+ *     date: string,
+ *     temperatures: array{min: string, max: string, moyenne: string},
+ *     precipitation: string,
+ *     vent: array{vitesse_max: string, rafales_max: string},
+ *     humidite: string,
+ *     ensoleillement: array{lever: string, coucher: string, duree: string},
+ *     conditions: array{code: int, icone: string, description: string}
+ * }
+ * 
+ * @throws RuntimeException Si données manquantes ou date introuvable
  */
 function getMeteoJournaliere(array $meteoData, string $ville, string $date): array {
     if (!$meteoData || !isset($meteoData['daily'])) {
@@ -285,6 +323,21 @@ function getMeteoJournaliere(array $meteoData, string $ville, string $date): arr
 
 /**
  * Récupère les données météo horaires pour un créneau spécifique
+ * 
+ * @param array $meteoData Données météo brutes (doit contenir une clé 'hourly')
+ * @param string $ville Nom de la ville analysée
+ * @param string $dateHeure Créneau horaire au format YYYY-MM-DD HH:MM
+ * 
+ * @return array{
+ *     ville: string,
+ *     date_heure: string,
+ *     temperature: string,
+ *     vent: array{vitesse: string},
+ *     humidite: string,
+ *     conditions: array{code: int, icone: string, description: string}
+ * }
+ * 
+ * @throws RuntimeException Si données manquantes ou créneau introuvable
  */
 function getMeteoHoraire(array $meteoData, string $ville, string $dateHeure): array {
     if (!$meteoData || !isset($meteoData['hourly'])) {
@@ -319,9 +372,16 @@ function getMeteoHoraire(array $meteoData, string $ville, string $dateHeure): ar
 
 
 /**
- * Génère le rendu d'un donut (graphique circulaire).
+ * Génère le rendu d'un donut (graphique circulaire)
+ * 
+ * @param int|float $percent Pourcentage (-100 à 100)
+ * @param string $mainText Texte principal centré
+ * @param string $subText Sous-texte informatif
+ * @param string $colorClass Classe CSS pour la couleur du segment
+ * @param int $fontSize Taille du texte principal (défaut: 7)
+ * @param string|null $textColorClass Classe CSS optionnelle pour le texte principal
  */
-function renderDonut($percent, $mainText, $subText, $colorClass, $fontSize = 7, $textColorClass = null): void {
+function renderDonut(int|float $percent, string $mainText, string $subText, string $colorClass, float $fontSize = 7, ?string $textColorClass = null): void {
     $isNegative = $percent < 0;
     $dash = abs($percent);
     $gap = 100 - $dash;
@@ -349,14 +409,25 @@ function renderDonut($percent, $mainText, $subText, $colorClass, $fontSize = 7, 
 }
 
 /**
- * Génération d'un graphique.
+ * Génération d'un graphique en barres horizontales
+ * 
+ * @param array<string, int> $data Données à visualiser (ville => valeur)
+ * @param string $cheminImage Chemin de sortie pour l'image PNG
+ * @param 'standard'|'alternatif' $theme Palette de couleurs
+ * @param int $width Largeur de l'image en pixels
+ * @param int $height Hauteur de l'image en pixels
+ * 
+ * @return bool True si succès, false si l'extension GD manquante
  */
-function genererGraphique($data, $cheminImage, $theme = 'Mode Sombre', $width = 1200, $height = 600) {
+function genererGraphique(array $data, string $cheminImage, string $theme = 'standard', int $width = 1200, int $height = 600): bool {
     if (!extension_loaded('gd')) return false;
 
-    // Couleurs
+    $fontFile = __DIR__ . '/../fonts/OpenSans-Regular.ttf';
+    $fontSize = 12;
+    
     $image = imagecreatetruecolor($width, $height);
-    if ($theme === 'Mode Clair') {
+    
+    if ($theme === 'alternatif') {
         $fond   = imagecolorallocate($image, 26, 26, 26);
         $barres = imagecolorallocate($image, 92, 219, 149);
         $texte  = imagecolorallocate($image, 255, 255, 255);
@@ -382,31 +453,52 @@ function genererGraphique($data, $cheminImage, $theme = 'Mode Sombre', $width = 
     $chartWidth = $width - $marginGauche - $marginDroite;
     $scale = $chartWidth / $maxValue;
 
-    // Axe vertical (ordonnées) : noms des villes
-	$font = 4;
-	$i = 0;
-	foreach ($data as $city => $count) {
-		$y = (int)($chartTop + $i * ($barHeight + $gap));
-		$cityWidth = imagefontwidth($font) * strlen($city);
-		$cityX = $marginGauche - 10 - $cityWidth;
-		imagestring($image, $font, $cityX, $y + $barHeight / 2 - 8, $city, $texte);
-		$barLen = (int)($count * $scale);
-		imagefilledrectangle($image, $marginGauche, $y, $marginGauche + $barLen, $y + $barHeight, $barres);
-		imagestring($image, $font, $marginGauche + $barLen + 10, $y + $barHeight / 2 - 8, $count, $texte);
-		$i++;
-	}
+    $i = 0;
+    foreach ($data as $city => $count) {
+        $y = (int)($chartTop + $i * ($barHeight + $gap));
+        
+        $bbox = imagettfbbox($fontSize, 0, $fontFile, $city);
+        $textWidth = $bbox[2] - $bbox[0];
+        $textHeight = $bbox[1] - $bbox[7];
+        
+        imagettftext(
+            $image, 
+            $fontSize, 
+            0, 
+            (int) ($marginGauche - 20 - $textWidth), 
+            (int) ($y + $barHeight/2 + $textHeight/2), 
+            $texte, 
+            $fontFile, 
+            $city
+        );
+        
+        $barLen = (int)($count * $scale);
+        imagefilledrectangle($image, $marginGauche, $y, $marginGauche + $barLen, $y + $barHeight, $barres);
+        
+        imagettftext(
+            $image, 
+            $fontSize, 
+            0, 
+            (int) ($marginGauche + $barLen + 15), 
+            (int) ($y + $barHeight/2 + $textHeight/2), 
+            $texte, 
+            $fontFile, 
+            $count
+        );
+        
+        $i++;
+    }
 
-    // Axe horizontal (abscisses) : graduations
     $nbGraduations = 5;
     for ($j = 0; $j <= $nbGraduations; $j++) {
         $val = round($maxValue * ($j / $nbGraduations));
         $x = $marginGauche + (int)($val * $scale);
         imageline($image, $x, $chartTop - 5, $x, $chartTop + $chartHeight, $axes);
-        imagestring($image, 3, $x - 10, $chartTop + $chartHeight + 10, $val, $texte);
+        
+        $bbox = imagettfbbox($fontSize, 0, $fontFile, $val);
+        $textWidth = $bbox[2] - $bbox[0];
+        imagettftext($image, $fontSize, 0, (int) ($x - $textWidth/2), (int) ($chartTop + $chartHeight + 25), $texte, $fontFile, $val);
     }
-
-    // Axe principal horizontal
-    imageline($image, $marginGauche, $chartTop + $chartHeight, $marginGauche + $chartWidth, $chartTop + $chartHeight, $axes);
 
     imagepng($image, $cheminImage);
     imagedestroy($image);
@@ -421,12 +513,13 @@ function genererGraphique($data, $cheminImage, $theme = 'Mode Sombre', $width = 
 
 /**
  * Affiche les données du jour (media et description) via l'API de la NASA.
- *
- * @param string $date La date à traiter (2025-03-23 par défaut).
+ * 
+ * @param string $date La date à traiter au format YYYY-MM-DD (défaut: 2025-03-23)
  */
 function afficherImageNASA(string $date = '2025-03-23'): void {
-    $apiKey = 'DEMO_KEY';
-    $data = fetchJson("https://api.nasa.gov/planetary/apod?api_key=$apiKey&date=$date");
+    $apiKey = 'kuSSwvl8vDlTfE2tLqV8tfqxGYJ3wOyTvpSBMTkU';
+    $url = "https://api.nasa.gov/planetary/apod?api_key=$apiKey&date=$date&thumbs=True";
+    $data = fetchJson($url);
     
     if (!$data || !isset($data['url'])) {
         echo "<p>Erreur lors de la récupération de l'image NASA.</p>";
@@ -434,16 +527,24 @@ function afficherImageNASA(string $date = '2025-03-23'): void {
     }
     
     echo "<h2>" . htmlspecialchars($data['title']) . "</h2>";
-    // Affichage conditionnel selon le type de média (image ou vidéo)
-    if ($data['media_type'] === 'image') {
-		
-        echo "<img src='" . htmlspecialchars($data['url']) . "' alt='Image du jour de la NASA' style='max-width:100%; height:auto;'>";
-    } 
-	elseif ($data['media_type'] === 'video') {
-		
-        echo "<iframe width='560' height='315' src='" . htmlspecialchars($data['url']) . "' frameborder='0' allowfullscreen></iframe>";
+    
+    switch ($data['media_type']) {
+        case 'image':
+            echo "<img src='" . htmlspecialchars($data['url']) . "' alt='Image du jour de la NASA' style='max-width:100%; height:auto;'/>";
+            break;
+            
+        case 'video':
+            $thumbnail = isset($data['thumbnail_url']) ? " poster='" . htmlspecialchars($data['thumbnail_url']) . "'" : '';
+            echo "<video controls{$thumbnail} style='max-width:100%; height:auto;'><source src='" . htmlspecialchars($data['url']) . "' type='video/mp4'>
+                    Votre navigateur ne supporte pas les vidéos HTML5.</video>";
+            break;
+            
+        default: // Cas 'other' et types inconnus
+            echo "<img src='images/default.jpg' alt='Média non supporté' style='max-width:100%; height:auto;'>";
+            break;
     }
-    echo "<p>Description : " . htmlspecialchars($data['explanation']) . "</p>";
+	
+    echo "<div class='description'>" . htmlspecialchars($data['explanation']) . "</div>";
 }
 
 /**
@@ -501,7 +602,7 @@ function extractionIPInfo(): void {
  * Affiche les données de l'IP de l'utilisateur via l'API WhatsMyIP.
  */
 function extractionWhatIsMyIP(): void {
-    $apiKey = '90b4b51cee24d67abf27dbb17e3b6bb7';
+    $apiKey = '0510b702f39d101ba4da0196e9dd5685';
     $ip = getIp();
     // Requête à l'API WhatIsMyIP avec la clé API et l'adresse IP
     $xml = fetchXml("https://api.whatismyip.com/ip-address-lookup.php?key=$apiKey&input=$ip&output=xml");
@@ -531,9 +632,14 @@ function extractionWhatIsMyIP(): void {
  */
 
 /**
- * Récupère les villes à partir d'un fichier CSV.
+ * Récupère les villes à partir d'un fichier CSV
+ * 
+ * @param string $filename Chemin du fichier CSV
+ * @return array[] Tableau de villes (structure garantie même si vide)
+ * 
+ * @throws RuntimeException Si le fichier est illisible (non trouvé ou permissions)
  */
-function getCitiesFromCSV($filename): ?array {
+function getCitiesFromCSV(string $filename): array {
     if (($handle = fopen($filename, "r")) !== FALSE) {
         $headers = fgetcsv($handle, 1000, ",");
         $cities = [];
@@ -554,70 +660,125 @@ function getCitiesFromCSV($filename): ?array {
 }
 
 /**
- * Filtre les villes par code de département.
+ * Filtre les villes par code de département
+ * 
+ * @param array[] $cities Tableau de villes ([['department_code' => string, ...], ...])
+ * @param string $departmentCode Code départemental (ex: "75")
+ * 
+ * @return array[] Sous-ensemble des villes correspondantes
+ * 
+ * @throws InvalidArgumentException Si structure des villes invalide
  */
-function filterCitiesByDepartment($cities, $departmentCode): ?array {
+function filterCitiesByDepartment(array $cities, string $departmentCode): array {
     return array_filter($cities, function($city) use ($departmentCode) {
         return $city['department_code'] == $departmentCode;
     });
 }
 
 /**
- * Affiche une liste déroulante de villes.
+ * Affiche une liste déroulante de villes
+ * 
+ * @param array[] $cities Tableau de villes [['id' => string, 'name' => string], ...]
+ * @param string $selected ID de la ville présélectionnée
+ * 
+ * @throws InvalidArgumentException Si structure de ville invalide
  */
-function displayCityDropdown($cities, $selected = ''): void {
-    echo '<select name="ville" id="ville-select" required>';
+function displayCityDropdown(array $cities, string $selected = ''): void {
+    echo '<select name="ville" id="ville-select" required="required">';
     echo '<option value="">Sélectionnez une ville</option>';
+
     foreach ($cities as $city) {
-        $sel = ($city['id'] == $selected) ? 'selected' : '';
+        if (!isset($city['id']) || !isset($city['name'])) {
+            throw new InvalidArgumentException('Structure de ville invalide');
+        }
+
         echo sprintf(
             '<option value="%s" %s>%s</option>',
-            htmlspecialchars($city['id']), // On envoie l'ID
-            $sel,
+            htmlspecialchars($city['id']),
+            ($city['id'] === $selected) ? 'selected="selected"' : '',
             htmlspecialchars($city['name'])
         );
     }
+    
     echo '</select>';
 }
 
 /**
- * Récupère les départements à partir d'un fichier CSV.
+ * Récupère les départements à partir d'un fichier CSV
+ * 
+ * @param string $filename Chemin du fichier CSV
+ * @return array[] Tableau de départements [['code' => string, ...], ...]
+ * 
+ * @throws RuntimeException Si le fichier est illisible
+ * @throws UnexpectedValueException Si structure CSV invalide
  */
-function getDepartmentsFromCSV($filename): ?array {
-    if (($handle = fopen($filename, "r")) !== FALSE) {
-        $headers = fgetcsv($handle, 1000, ",");
-        $departments = [];
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            $department = array_combine($headers, $data);
-            $departments[] = [
-                'code' => $department['code'],
-                'region_code' => $department['region_code'],
-                'name' => $department['name']
-            ];
-        }
-        fclose($handle);
-        return $departments;
+function getDepartmentsFromCSV(string $filename): array {
+    if (!is_readable($filename)) {
+        throw new RuntimeException("Fichier $filename inaccessible");
     }
-    return [];
+
+    $handle = fopen($filename, 'r');
+    if ($handle === false) {
+        return [];
+    }
+
+    $headers = fgetcsv($handle, 1000, ',');
+    if ($headers === false) {
+        fclose($handle);
+        return [];
+    }
+
+    $requiredColumns = ['code', 'region_code', 'name'];
+    if (count(array_intersect($requiredColumns, $headers)) !== 3) {
+        fclose($handle);
+        throw new UnexpectedValueException('Colonnes manquantes dans le CSV');
+    }
+
+    $departments = [];
+    while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+        $department = array_combine($headers, $data);
+        $departments[] = [
+            'code' => $department['code'] ?? '',
+            'region_code' => $department['region_code'] ?? '',
+            'name' => $department['name'] ?? ''
+        ];
+    }
+
+    fclose($handle);
+    return $departments;
 }
 
 /**
- * Filtre les départements par code de région.
+ * Filtre les départements par code de région
+ * 
+ * @param array[] $departments Tableau de départements [['region_code' => string, ...], ...]
+ * @param string $regionCode Code régional à filtrer (ex: "11")
+ * 
+ * @return array[] Départements correspondants (conservent leur structure d'origine)
+ * 
+ * @throws InvalidArgumentException Si structure des départements invalide
  */
-function filterDepartmentsByRegion($departments, $regionCode): ?array {
+function filterDepartmentsByRegion(array $departments, string $regionCode): array {
+    if (!empty($departments) && !isset($departments[0]['region_code'])) {
+        throw new InvalidArgumentException('Structure de département invalide');
+    }
+
     return array_filter($departments, function($department) use ($regionCode) {
-        return $department['region_code'] == $regionCode;
+        return $department['region_code'] === $regionCode;
     });
 }
 
 /**
- * Affiche une liste déroulante de départements.
+ * Affiche une liste déroulante de départements
+ * 
+ * @param array[] $departments Tableau de départements [['code' => string, 'region_code' => string, 'name' => string], ...]
+ * @param string $selected Code départemental présélectionné
  */
 function displayDepartmentDropdown($departments, $selected = ''): void {
     echo '<select name="departement" id="departement-select">';
     echo '<option value="">Sélectionnez un département</option>';
     foreach ($departments as $department) {
-        $sel = ($department['code'] == $selected) ? 'selected' : '';
+        $sel = ($department['code'] == $selected) ? 'selected="selected"' : '';
         echo '<option value="' . $department['code'] . '" data-region="' . $department['region_code'] . '" ' . $sel . '>';
         echo $department['name'];
         echo '</option>';
@@ -626,47 +787,96 @@ function displayDepartmentDropdown($departments, $selected = ''): void {
 }
 
 /**
- * Récupère les régions à partir d'un fichier CSV.
+ * Récupère les régions à partir d'un fichier CSV
+ * 
+ * @param string $filename Chemin du fichier CSV
+ * @return array[] Tableau de régions [['code' => string, 'name' => string, 'slug' => string], ...]
+ * 
+ * @throws RuntimeException Si le fichier est illisible
+ * @throws UnexpectedValueException Si structure CSV invalide
  */
-function getRegionsFromCSV($filename): ?array {
-    if (($handle = fopen($filename, "r")) !== FALSE) {
-        $headers = fgetcsv($handle, 1000, ",");
-        $regions = [];
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            $region = array_combine($headers, $data);
-            $regions[] = [
-                'code' => $region['code'],
-                'name' => $region['name'],
-                'slug' => $region['slug']
-            ];
-        }
-        fclose($handle);
-        return $regions;
+function getRegionsFromCSV(string $filename): array {
+    if (!is_readable($filename)) {
+        throw new RuntimeException("Fichier $filename inaccessible");
     }
-    return [];
+
+    $handle = fopen($filename, 'r');
+    if ($handle === false) {
+        return [];
+    }
+
+    $headers = fgetcsv($handle, 1000, ',');
+    if ($headers === false) {
+        fclose($handle);
+        return [];
+    }
+
+    $requiredColumns = ['code', 'name', 'slug'];
+    if (count(array_intersect($requiredColumns, $headers)) !== 3) {
+        fclose($handle);
+        throw new UnexpectedValueException('Colonnes manquantes dans le CSV');
+    }
+
+    $regions = [];
+    while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+        $region = array_combine($headers, $data);
+        $regions[] = [
+            'code' => $region['code'] ?? '',
+            'name' => $region['name'] ?? '',
+            'slug' => $region['slug'] ?? ''
+        ];
+    }
+
+    fclose($handle);
+    return $regions;
 }
 
 /**
- * Affiche une liste déroulante de régions.
+ * Affiche une liste déroulante de régions
+ * 
+ * @param array[] $regions Tableau de régions [['code' => string, 'slug' => string, 'name' => string], ...]
+ * @param string $selected Code régional présélectionné
+ * 
+ * @throws InvalidArgumentException Si structure des régions invalide
  */
-function displayRegionDropdown($regions, $selected = ''): void {
-    echo '<select name="region" id="region-select">';
-    echo '<option value="">Sélectionnez une région</option>';
-    foreach ($regions as $region) {
-        $sel = ($region['code'] == $selected) ? 'selected' : '';
-        echo '<option value="' . $region['code'] . '" data-slug="' . $region['slug'] . '" ' . $sel . '>';
-        echo $region['name'];
-        echo '</option>';
+function displayRegionDropdown(array $regions, string $selected = ''): void {
+    if (!empty($regions) && !isset($regions[0]['code'], $regions[0]['slug'], $regions[0]['name'])) {
+        throw new InvalidArgumentException('Structure des régions invalide');
     }
+
+    echo '<select name="region" id="region-select" required="required">';
+    echo '<option value="">Sélectionnez une région</option>';
+
+    foreach ($regions as $region) {
+        echo sprintf(
+            '<option value="%s" data-slug="%s" %s>%s</option>',
+            htmlspecialchars($region['code'], ENT_QUOTES),
+            htmlspecialchars($region['slug'], ENT_QUOTES),
+            ($region['code'] === $selected) ? 'selected="selected"' : '',
+            htmlspecialchars($region['name'])
+        );
+    }
+
     echo '</select>';
 }
 
 /**
- * Récupère une ville par son ID.
+ * Récupère une ville par son ID
+ * 
+ * @param array[] $cities Tableau de villes [['id' => string, ...], ...]
+ * @param string $id Identifiant à rechercher
+ * 
+ * @return array|null Ville trouvée ou null
+ * 
+ * @throws InvalidArgumentException Si structure des villes invalide
  */
 function getCityById(array $cities, string $id): ?array {
     foreach ($cities as $city) {
-        if ($city['id'] == $id) {
+        if (!isset($city['id'])) {
+            throw new InvalidArgumentException('Structure de ville invalide');
+        }
+
+        if ($city['id'] === $id) {
             return $city;
         }
     }
@@ -674,10 +884,21 @@ function getCityById(array $cities, string $id): ?array {
 }
 
 /**
- * Récupère le code de région à partir du code de département.
+ * Récupère le code de région associé à un département
+ * 
+ * @param array[] $departments Tableau de départements [['code' => string, 'region_code' => string], ...]
+ * @param string $departmentCode Code départemental à rechercher
+ * 
+ * @return string Code régional ou chaîne vide si non trouvé
+ * 
+ * @throws InvalidArgumentException Si structure des départements invalide
  */
 function getRegionCodeByDepartment(array $departments, string $departmentCode): string {
     foreach ($departments as $dept) {
+        if (!isset($dept['code'], $dept['region_code'])) {
+            throw new InvalidArgumentException('Structure de département invalide');
+        }
+
         if ($dept['code'] === $departmentCode) {
             return $dept['region_code'];
         }
@@ -692,7 +913,16 @@ function getRegionCodeByDepartment(array $departments, string $departmentCode): 
  */
 
 /**
- * Enregistre les informations de la ville sélectionnée.
+ * Enregistre les informations de la ville sélectionnée
+ * 
+ * @param array $city Ville à logger [
+ *     'id' => string,
+ *     'name' => string,
+ *     'department_code' => string,
+ *     'gps_lat' => string,
+ *     'gps_lng' => string
+ * ]
+ * @param array[] $departments Tableau de départements [['code' => string, 'region_code' => string], ...]
  */
 function logCity(array $city, array $departments): void {
     $logFile = 'csv/logs.csv';
@@ -725,7 +955,13 @@ function logCity(array $city, array $departments): void {
 }
 
 /**
- * Récupère la dernière sélection de ville.
+ * Récupère la dernière sélection de ville depuis les cookies
+ * 
+ * @return array Structure normalisée [
+ *     'region' => ?string,
+ *     'department_code' => ?string,
+ *     'city_id' => ?string
+ * ]
  */
 function getLastCitySelection() {
     if (!isset($_COOKIE['last_city'])) return [null, null, null];
@@ -741,9 +977,16 @@ function getLastCitySelection() {
 }
 
 /**
- * Définit un cookie pour la ville sélectionnée.
+ * Définit un cookie pour la ville sélectionnée
+ * 
+ * @param array $city Ville [
+ *     'id' => string,
+ *     'name' => string,
+ *     'department_code' => string
+ * ]
+ * @param array[] $departments Tableau de départements [['code' => string, 'region_code' => string], ...]
  */
-function setCityCookie($city, $departments) {
+function setCityCookie(array $city, array $departments): void {
     $cookieData = [
         'id' => $city['id'],
         'date' => date('Y-m-d H:i:s'),
@@ -753,7 +996,6 @@ function setCityCookie($city, $departments) {
     ];
     setcookie('last_city', json_encode($cookieData), time() + 30*24*3600, '/', '', true, true);
 }
-
 
 /**
  * Récupère la ville actuelle avec fallback sur la valeur par défaut.
@@ -787,7 +1029,10 @@ function getCurrentCity(array $cities, string $defaultCityId): array {
  */
 
 /**
- * Traduit une date du format anglais au format français.
+ * Traduit une date anglaise en français
+ * 
+ * @param string $dateAnglaise Date au format "Jour Mois Année" (ex: "Monday 25 January 2025")
+ * @return string Date traduite (ex: "Lundi 25 janvier 2025")
  */
 function traduireDate(string $dateAnglaise): string {
     // Tableaux de traduction
@@ -825,7 +1070,10 @@ function traduireDate(string $dateAnglaise): string {
 }
 
 /**
- * Obtient le libellé d'une date à partir d'un objet DateTime.
+ * Génère un libellé de date relatif ou traduit
+ * 
+ * @param DateTimeInterface $date Date à formater
+ * @return string Libellé formaté (ex: "Aujourd'hui à", "Lundi à")
  */
 function getLibelleDate(DateTime $date): string {
     $aujourdhui = new DateTime('today');
@@ -841,9 +1089,14 @@ function getLibelleDate(DateTime $date): string {
 }
 
 /**
- * Valide un intervalle de date.
+ * Valide qu'une date est au format YYYY-MM-DD et dans les X prochains jours
+ * 
+ * @param string $date Date à valider
+ * @param int $maxJours Nombre maximal de jours dans le futur (défaut: 5)
+ * 
+ * @return bool True si valide, false sinon
  */
-function validateDateInterval($date) {
+function validateDateInterval(string $date, int $maxJours = 5): bool {
 	
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
         return false;
@@ -858,7 +1111,7 @@ function validateDateInterval($date) {
     $interval = $now->diff($dateObj);
     $daysDifference = (int)$interval->format('%r%a');
 
-    return $daysDifference >= 0 && $daysDifference <= 5;
+    return $daysDifference >= 0 && $daysDifference <= $maxJours;
 }
 
 /**
@@ -876,7 +1129,19 @@ function genererHoraires24h(): array {
 }
 
 /**
- * Récupère les prévisions pour les 24 prochaines heures.
+ * Récupère les prévisions météorologiques horaires pour les 24 prochaines heures
+ * 
+ * @param array $meteoData Données météo brutes (format attendu par getMeteoHoraire)
+ * @param string $ville Identifiant de ville (format attendu par getMeteoHoraire)
+ * 
+ * @return array[] Tableau de prévisions [
+ *     [
+ *         'date_heure' => string (format Y-m-d H:i),
+ *         'temperature' => float,
+ *         'conditions' => string,
+ *         'erreur' => string|null
+ *     ]
+ * ]
  */
 function recupererPrevisions24h(array $meteoData, string $ville): array {
     $heures = genererHoraires24h();
@@ -896,7 +1161,7 @@ function recupererPrevisions24h(array $meteoData, string $ville): array {
 
 
 /**
- * Récupère la date actuelle.
+ * Récupère et valide la date courante
  */
 function getCurrentDate() {
     $dateJour = $_GET['date'] ?? date('Y-m-d');
@@ -919,10 +1184,10 @@ function getCurrentDate() {
  * Incrémente le compteur de visites dans un fichier CSV.
  * Crée le fichier si besoin.
  *
- * @param string $csvFilePath
+ * @param string $csvFilePath Chemin du fichier CSV
  * @return int Le nouveau compteur
  */
-function compteurVisites($csvFilePath) {
+function compteurVisites(string $csvFilePath) {
     $compteur = 0;
 
     // Si le fichier existe, lire la valeur actuelle
@@ -954,8 +1219,10 @@ function compteurVisites($csvFilePath) {
 
 /**
  * Récupère le top 10 des villes avec le comptage des visites.
+ *
+ * @param string $csvFilePath Chemin du fichier CSV
  */
-function getTop10Villes($csvFilePath) {
+function getTop10Villes(string $csvFilePath) {
     $cityCounts = [];
 
     if (!file_exists($csvFilePath) || !is_readable($csvFilePath)) {

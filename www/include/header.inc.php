@@ -29,11 +29,11 @@ if (isset($_COOKIE[$cookieName])) {
 
 if ($theme === 'alternatif') {
     $stylesheet = "css/style-dark.css";
-    $modeText = "Mode Clair";
+    $modeIcon = '<img src="./images/sun.svg" alt="Mode Clair" style="height:50px; width:50px;"/>';
     $toggleLink = $_SERVER['PHP_SELF'] . '?style=standard';
 } else {
     $stylesheet = "css/style-bright.css";
-    $modeText = "Mode Sombre";
+    $modeIcon = '<img src="./images/moon.svg" alt="Mode Sombre" style="height:50px; width:50px;"/>';
     $toggleLink = $_SERVER['PHP_SELF'] . '?style=alternatif';
 }
 ?>
@@ -46,20 +46,22 @@ if ($theme === 'alternatif') {
     <title><?= isset($title) ? $title : "costa-matheo" ?></title>
     <meta name="description" content="<?= isset($description) ? $description : "Voici mon site personnel qui contient les exercices de dev web" ?>"/>
     <link rel="stylesheet" href="<?= $stylesheet; ?>"/>
-	<link rel = "icon" href = "./logo/logo4.jpg" type = "image/jpg"/>
+    <link rel="icon" type="image/x-icon" href="logo/favicon.ico" />
   </head>
   <body>
 	<header>
 		<figure style="margin: 0;">
-			<a href="index.php"><img src="./logo/logo5.png" alt="Logo" style="height: 55px;"/></a>
+			<a href="index.php"><img src="./logo/logo5.png" alt="Logo de Meteo CoZi" style="height: 55px;"/></a>
 		</figure>
 		<nav>
 			<ul>
 				<li><a href="meteo.php">Page Météo</a></li>
 				<li><a href="stats.php">Statistiques</a></li>
 				<li><a href="tech.php">Tech</a></li>
-				<li><a href="propos.php">A propos</a></li>
+				<li><a href="propos.php">À propos</a></li>
 			</ul>
-			<a href="<?= $toggleLink; ?>" class="mode-toggle"><?= $modeText; ?></a>
+			<a href="<?= $toggleLink; ?>" class="mode-toggle" style="display: inline-block;">
+				<?= $modeIcon; ?>
+			</a>
 		</nav>
 	</header>
